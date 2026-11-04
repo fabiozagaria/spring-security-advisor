@@ -1,0 +1,12 @@
+{
+  "name": "spring-security-advisor",
+  "owner": { "name": "Fabio Zagaria" },
+  "plugins": [
+    {
+      "name": "spring-security-advisor",
+      "source": "./plugins/spring-security-advisor",
+      "description": "Spring Security review and map: rule-based scanner plus explanations with official sources."
+    }
+  ],
+  "metadata": { "description": "Claude Code plugins for Java and Spring developers." }
+}

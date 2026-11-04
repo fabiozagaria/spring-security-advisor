@@ -1,0 +1,8 @@
+{
+  "name": "spring-security-advisor",
+  "version": "0.1.0",
+  "description": "Spring Security review and map for Claude Code: a rule-based scanner finds known configuration mistakes, the skills explain each risk with an official source. Servlet stack, Python standard library only.",
+  "author": { "name": "Fabio Zagaria" },
+  "license": "MIT",
+  "keywords": ["spring", "spring-security", "java", "security", "code-review", "jwt"]
+}

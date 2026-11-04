@@ -1,0 +1,68 @@
+[
+  {
+    "id": "SEC001",
+    "title": "NoOpPasswordEncoder in production code",
+    "severity": "high",
+    "type": "certain bug",
+    "risk": "Passwords are stored and compared in clear text. Spring documents NoOpPasswordEncoder as not secure and kept for legacy and testing only.",
+    "fix": "Use an adaptive encoder. PasswordEncoderFactories.createDelegatingPasswordEncoder() encodes with bcrypt by default and supports password upgrades.",
+    "source": "Spring Security 7.0 API reference: NoOpPasswordEncoder, PasswordEncoderFactories.createDelegatingPasswordEncoder()",
+    "status": "V",
+    "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC002",
+    "title": "Authorization rule that can never be reached",
+    "severity": "high",
+    "type": "certain bug",
+    "risk": "authorizeHttpRequests evaluates rules in order and the first match wins. A broader rule placed before a narrower one makes the narrower rule dead, so the access you meant to grant or restrict is not applied.",
+    "fix": "Order rules from the most specific to the most general and end with anyRequest().",
+    "source": "Spring Security 7.0 API reference: HttpSecurity.authorizeHttpRequests, 'Invalid Matcher Order Example'",
+    "status": "V",
+    "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC003",
+    "title": "Method security annotations without method security enabled",
+    "severity": "medium",
+    "type": "certain bug",
+    "risk": "@PreAuthorize and related annotations look protective, but Spring Boot's security starter does not activate method-level authorization by default, so they are ignored.",
+    "fix": "Add @EnableMethodSecurity to a @Configuration class.",
+    "source": "Spring Security 7.0 reference: Method Security",
+    "status": "V",
+    "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC004",
+    "title": "Deprecated @EnableGlobalMethodSecurity",
+    "severity": "low",
+    "type": "improvement",
+    "risk": "The annotation is deprecated in favor of @EnableMethodSecurity, which enables pre/post annotations by default and uses AuthorizationManager.",
+    "fix": "Replace it with @EnableMethodSecurity.",
+    "source": "Spring Security 7.0 reference: Migrating from @EnableGlobalMethodSecurity",
+    "status": "V",
+    "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC005",
+    "title": "CSRF protection disabled",
+    "severity": "medium",
+    "type": "risk to evaluate",
+    "risk": "CSRF protection is on by default and should be disabled only when it makes sense for the application. With cookie or session based authentication, disabling it exposes state-changing requests to cross-site forgery.",
+    "fix": "Keep the default. If the API is stateless and authenticates only with a token sent in a header, disabling CSRF can be reasonable: document that choice next to the call.",
+    "source": "Spring Security 7.0 reference: Cross Site Request Forgery (CSRF), Disable CSRF Protection",
+    "status": "V",
+    "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC006",
+    "title": "Token authentication without an explicit stateless session policy",
+    "severity": "medium",
+    "type": "risk to evaluate",
+    "risk": "The project looks like it authenticates with bearer tokens, but no SecurityFilterChain sets SessionCreationPolicy.STATELESS. Depending on the setup, sessions may still be created, which does not match a token-based model.",
+    "fix": "If the API is meant to be stateless, set sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).",
+    "source": "Spring Security 7.0 reference: Session Management, SessionCreationPolicy.STATELESS (the token detection itself is a heuristic)",
+    "status": "V",
+    "checked": "2026-11-04"
+  }
+]
