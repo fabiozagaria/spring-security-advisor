@@ -8,8 +8,11 @@ description: Security code review for Spring Security (servlet stack). Runs a ru
 Read-only. This skill never edits the project.
 
 ```
-SCAN="python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan.py"
+PY=$(for c in python3 python py; do "$c" -c "import sys; sys.exit(sys.version_info[0] != 3)" 2>/dev/null && { echo "$c"; break; }; done)
+SCAN="$PY ${CLAUDE_PLUGIN_ROOT}/scripts/scan.py"
 ```
+
+If `$PY` is empty, no working Python 3 was found (on Windows `python3` is often a Microsoft Store stub that does not run). Tell the user to install Python 3 and stop; do not work around it.
 
 ## Steps
 

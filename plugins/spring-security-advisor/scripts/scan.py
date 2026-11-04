@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 RULES_FILE = Path(__file__).resolve().parent.parent / "rules" / "rules.json"
 SKIP_DIRS = {".git", "target", "build", "node_modules", ".gradle", ".idea", ".mvn", "out"}
 SEVERITY_ORDER = {"low": 1, "medium": 2, "high": 3}
