@@ -64,5 +64,16 @@
     "source": "Spring Security 7.0 reference: Session Management, SessionCreationPolicy.STATELESS (the token detection itself is a heuristic)",
     "status": "V",
     "checked": "2026-11-04"
+  },
+  {
+    "id": "SEC007",
+    "title": "HMAC JWT signing key shorter than the algorithm minimum",
+    "severity": "high",
+    "type": "certain bug",
+    "risk": "RFC 7518 requires an HMAC key at least as large as the hash output (256 bits for HS256, 384 for HS384, 512 for HS512). A key built from a short string literal is weak and easy to guess or brute-force, and some libraries refuse to use it.",
+    "fix": "Generate a random key of at least the required size and load it from configuration or a secret store, not from a literal in the source.",
+    "source": "RFC 7518 (JSON Web Algorithms) section 3.2, HMAC with SHA-2 Functions; Spring Security 7.0 reference: OAuth 2.0 Resource Server JWT, NimbusJwtDecoder.withSecretKey",
+    "status": "V",
+    "checked": "2026-11-04"
   }
 ]

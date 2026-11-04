@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 RULES_FILE = Path(__file__).resolve().parent.parent / "rules" / "rules.json"
 SKIP_DIRS = {".git", "target", "build", "node_modules", ".gradle", ".idea", ".mvn", "out"}
 SEVERITY_ORDER = {"low": 1, "medium": 2, "high": 3}
@@ -340,6 +340,35 @@ def check_sec006(project, rules):
             )
 
 
+# Minimum HMAC key size in bytes: RFC 7518 section 3.2 (256, 384, 512 bits).
+HMAC_MIN_BYTES = {"HmacSHA256": 32, "HmacSHA384": 48, "HmacSHA512": 64}
+SECRET_KEY_SPEC = re.compile(
+    r'new\s+SecretKeySpec\(\s*"((?:[^"\\\n]|\\.)*)"\s*\.getBytes\([^)]*\)\s*,\s*"(HmacSHA(?:256|384|512))"'
+)
+JJWT_HMAC_KEY = re.compile(r'Keys\.hmacShaKeyFor\(\s*"((?:[^"\\\n]|\\.)*)"\s*\.getBytes\([^)]*\)\s*\)')
+
+
+def check_sec007(project, rules):
+    """HMAC key built from a string literal that is shorter than the algorithm minimum."""
+    for regex, algorithm_group in ((SECRET_KEY_SPEC, 2), (JJWT_HMAC_KEY, None)):
+        for path, text, match, line in project.grep(regex.pattern):
+            literal = match.group(1)
+            if "\\" in literal:
+                continue  # escapes: the byte length is not obvious, stay silent
+            algorithm = match.group(algorithm_group) if algorithm_group else "HmacSHA256"
+            needed = HMAC_MIN_BYTES[algorithm]
+            size = len(literal.encode("utf-8"))
+            if size < needed:
+                yield make_finding(
+                    rules,
+                    "SEC007",
+                    project,
+                    path,
+                    line,
+                    f"The {algorithm} key is a string literal of {size} bytes ({size * 8} bits); the minimum is {needed * 8} bits.",
+                )
+
+
 CHECKS = {
     "SEC001": check_sec001,
     "SEC002": check_sec002,
@@ -347,6 +376,7 @@ CHECKS = {
     "SEC004": check_sec004,
     "SEC005": check_sec005,
     "SEC006": check_sec006,
+    "SEC007": check_sec007,
 }
 
 

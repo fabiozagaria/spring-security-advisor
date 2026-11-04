@@ -26,7 +26,7 @@ class Fixtures(unittest.TestCase):
     def test_vulnerable_project_triggers_every_rule(self):
         self.assertEqual(
             ids(FIXTURES / "vulnerable"),
-            ["SEC001", "SEC002", "SEC002", "SEC003", "SEC004", "SEC005", "SEC006"],
+            ["SEC001", "SEC002", "SEC002", "SEC003", "SEC004", "SEC005", "SEC006", "SEC007"],
         )
 
     def test_fixed_project_has_no_findings(self):
@@ -93,6 +93,31 @@ class Helpers(unittest.TestCase):
     def test_find_matching_skips_parentheses_in_strings(self):
         text = 'f("a)b", g(1))'
         self.assertEqual(scan.find_matching(text, 1), len(text) - 1)
+
+
+class Sec007(unittest.TestCase):
+    def scan_snippet(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "src" / "main" / "java"
+            src.mkdir(parents=True)
+            (src / "K.java").write_text("class K { Object f() { return " + body + "; } }")
+            return [f for f in findings(tmp) if f["id"] == "SEC007"]
+
+    def test_short_literal_hs256_key_is_reported(self):
+        result = self.scan_snippet('new SecretKeySpec("short-secret".getBytes(), "HmacSHA256")')
+        self.assertEqual(len(result), 1)
+        self.assertIn("96 bits", result[0]["detail"])
+
+    def test_32_byte_literal_is_fine(self):
+        self.assertEqual(self.scan_snippet('new SecretKeySpec("0123456789abcdef0123456789abcdef".getBytes(), "HmacSHA256")'), [])
+
+    def test_minimum_depends_on_the_algorithm(self):
+        key = "0123456789abcdef0123456789abcdef"  # 32 bytes
+        self.assertEqual(len(self.scan_snippet(f'new SecretKeySpec("{key}".getBytes(), "HmacSHA512")')), 1)
+        self.assertEqual(len(self.scan_snippet(f'Keys.hmacShaKeyFor("{key[:20]}".getBytes(StandardCharsets.UTF_8))')), 1)
+
+    def test_key_from_configuration_is_not_judged(self):
+        self.assertEqual(self.scan_snippet('new SecretKeySpec(secret.getBytes(), "HmacSHA256")'), [])
 
 
 class Catalogue(unittest.TestCase):

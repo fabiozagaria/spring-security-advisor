@@ -17,7 +17,7 @@ A small, tested Python scanner finds **known configuration mistakes** and prints
 
 Planned next: `advise` (choosing between sessions, your own JWT, an OAuth2 resource server or an identity provider) and `apply` (one change at a time, with a diff and your confirmation). See the roadmap below.
 
-## Rules (0.1)
+## Rules
 
 Each rule was checked against the Spring Security 7.0 reference; the source is printed in every finding.
 
@@ -29,8 +29,23 @@ Each rule was checked against the Spring Security 7.0 reference; the source is p
 | SEC004 | low | Deprecated `@EnableGlobalMethodSecurity` |
 | SEC005 | medium / low | CSRF disabled (low when the same file sets a stateless session policy) |
 | SEC006 | medium | Token-based authentication without an explicit `SessionCreationPolicy.STATELESS` (heuristic) |
+| SEC007 | high | HMAC JWT signing key built from a string literal shorter than the algorithm minimum (256 bits for HS256) |
 
 Findings carry a type (certain bug, risk to evaluate, improvement) and a confidence (high, or medium for heuristics). Comments, imports and test sources are not reported.
+
+## Example
+
+Scanner output on the `vulnerable` test fixture (one finding shown):
+
+```text
+[SEC007] high: HMAC JWT signing key shorter than the algorithm minimum
+Where: src/main/java/demo/JwtKeys.java:8
+Detail: The HmacSHA256 key is a string literal of 8 bytes (64 bits); the minimum is 256 bits.
+Risk: RFC 7518 requires an HMAC key at least as large as the hash output (256 bits for HS256, 384 for HS384, 512 for HS512). ...
+Suggested fix: Generate a random key of at least the required size and load it from configuration or a secret store, not from a literal in the source.
+Source: RFC 7518 (JSON Web Algorithms) section 3.2, HMAC with SHA-2 Functions; Spring Security 7.0 reference: OAuth 2.0 Resource Server JWT, NimbusJwtDecoder.withSecretKey (checked 2026-11-04)
+Type: certain bug | Confidence: high
+```
 
 ## Install
 
@@ -40,6 +55,8 @@ claude plugin install spring-security-advisor@spring-security-advisor
 ```
 
 For local development: `claude --plugin-dir ./plugins/spring-security-advisor`.
+
+The skills need Python 3 on your `PATH`. They try `python3`, `python` and `py`. On Windows `python3` is often a Microsoft Store stub that does not run; install Python 3 from python.org or with `winget install Python.Python.3.12`.
 
 ## The scanner
 
@@ -61,7 +78,7 @@ python3 scripts/scan.py map  path/to/project
 
 ## Roadmap
 
-- **0.2**: more rules (JWT secret handling, key length, algorithm and expiry checks, filter error handling), each added only with a cited source; `advise` skill.
+- **0.2**: more rules (hard-coded JWT secret, algorithm and expiry checks, filter error handling), each added only with a verified source (key length, SEC007, is done); `advise` skill.
 - **0.3**: `apply` skill with diff and confirmation.
 - **Later**: login rate limiting and refresh-token heuristics, Gradle Kotlin support, a more precise Java-based scanner.
 
